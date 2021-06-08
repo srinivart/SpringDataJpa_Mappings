@@ -1,0 +1,915 @@
+
+http://localhost:8059/h2-console/
+
+
+
+
+
+
+1)
+
+customer.java
+---------
+@OneToOne(cascade = CascadeType.ALL)
+    private Item item;
+    
+    
+
+
+
+
+2 tables got created
+-------------------------->
+
+SELECT * FROM CUSTOMER;
+ID  	NAME  	ITEM_NAME  
+
+
+
+SELECT * FROM ITEM;
+NAME  	PRICE  
+
+
+
+
+
+
+
+
+
+
+
+
+
+Ex:
+----
+
+Code
+--------
+Item item = new Item("mobile",10000);
+
+Customer customer = new Customer("srini");
+
+customer.setItem(item);
+customerRepository.save(customer);
+
+-------------------------->
+
+SELECT * FROM CUSTOMER;
+ID  	NAME  	ITEM_NAME  
+1	srini	mobile
+
+
+
+
+SELECT * FROM ITEM;
+NAME  	PRICE  
+mobile	10000
+
+
+
+
+
+
+
+
+
+
+
+
+2) 
+
+ONe to Many
+
+
+
+
+customer.java
+----------------
+@OneToMany(cascade = CascadeType.ALL)
+private List<Item> item = new ArrayList<>();
+    
+    
+
+
+main code
+--------
+Item item1 = new Item("mobile",10000);
+Item item2 = new Item("laptop",45000);
+
+
+Customer customer = new Customer("srini");
+
+customer.setItem(Arrays.asList(item1,item2));
+customerRepository.save(customer);
+----------------		
+		
+		
+
+
+
+
+
+3 tables got created
+----
+
+SELECT * FROM CUSTOMER;
+ID  	NAME  
+1		srini
+
+
+SELECT * FROM ITEM;
+NAME  	PRICE  
+mobile	10000
+laptop	45000
+
+
+SELECT * FROM CUSTOMER_ITEM;
+CUSTOMER_ID  	ITEM_NAME  
+1	mobile
+1	laptop
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+3) 
+Many to One
+
+
+
+-->
+//@JoinColumn(name = "customer_id")
+if we dont' give join column,, hibernate
+will automatically creates for us
+
+
+
+item.java
+--------------------------------
+@ManyToOne(cascade = CascadeType.ALL)
+private Customer customer;
+
+
+
+
+
+2 tables got created
+--------------------------------
+SELECT * FROM CUSTOMER;
+
+ID  	NAME  
+
+
+
+
+SELECT * FROM ITEM;
+
+NAME  	PRICE  	CUSTOMER_ID  
+
+--------------------------------
+
+
+
+
+
+main code
+---------
+
+
+
+
+
+Error
+-----
+
+No default constructor for entity:  : com.srinivart.entity.Item
+No default constructor for entity:  : com.srinivart.entity.Customer
+
+
+
+solution:
+------
+create default constructor
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+item.java
+-------------------->
+@ManyToOne(cascade = CascadeType.ALL)
+private Customer customer;
+-------------------->
+
+
+
+
+main code
+-------------------->
+
+Customer customer = new Customer("srini");
+
+Item item1 = new Item("mobile",10000);
+Item item2 = new Item("laptop",45000);
+
+
+item1.setCustomer(customer);
+item2.setCustomer(customer);
+
+itemRepository.save(item1);
+itemRepository.save(item2);
+		
+		
+		
+------------------->
+
+SELECT * FROM CUSTOMER;
+ID  	NAME  
+1		srini
+2		srini
+
+
+
+SELECT * FROM ITEM;
+NAME  	PRICE  	CUSTOMER_ID  
+mobile	10000	1
+laptop	45000	2
+
+
+------------------->
+above 2 duplicate customers are getting created...
+so use 
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+--->
+---->
+
+
+Now the issue resolved
+
+
+SELECT * FROM CUSTOMER;
+----------
+ID  	NAME 
+---------- 
+1	srini
+----------
+
+
+
+SELECT * FROM ITEM;
+
+NAME  	PRICE  	CUSTOMER_ID  
+--------------------
+mobile	10000	1
+laptop	45000	1
+--------------------
+
+
+
+
+
+
+
+Many to One -> many items will hae one cusomter
+--------------------------------------------
+
+Code
+-----
+
+main.java
+----
+
+Customer customer = new Customer("srini");
+
+ customerRepository.save(customer);
+		
+ Item item1 = new Item("mobile",10000);
+ Item item2 = new Item("laptop",45000);
+		
+ item1.setCustomer(customer);
+ item2.setCustomer(customer);
+
+ itemRepository.save(item1);
+ itemRepository.save(item2);
+		
+		
+
+
+
+
+Item.java
+-------
+@ManyToOne(cascade = CascadeType.ALL)
+    private Customer customer;
+    
+    
+--------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+4) 
+
+Many to Many
+
+
+
+3 tables got created 
+
+
+SELECT * FROM CUSTOMER;
+----------------------------------
+ID  	NAME  
+1		srini
+----------------------------------
+
+
+
+
+SELECT * FROM ITEM;
+----------------------------------
+NAME  	PRICE 
+ 
+mobile	10000
+laptop	45000
+----------------------------------
+
+
+
+
+SELECT * FROM CUSTOMER_ITEMS;
+----------------------------------
+CUSTOMER_ID  	ITEMS_NAME 
+ 
+1				laptop
+1				mobile
+----------------------------------
+
+
+
+
+
+
+
+main.java
+----------------------------------
+
+Customer customer = new Customer("srini");
+
+Set<Item> items= new HashSet<>();
+
+items.add(new Item("mobile",10000));
+items.add(new Item("laptop",45000));
+
+customer.setItems(items);
+
+customerRepository.save(customer);
+----------------------------------      
+        
+        
+
+
+customer.java
+------------
+@ManyToMany(cascade = CascadeType.ALL)
+private Set<Item> items= new HashSet<>();
+ ----------------------------------   
+
+
+       
+
+
+
+
+
+
+
+
+
+
+5)
+
+Many to Many -> Bi directional 
+
+
+
+
+
+3 tables got created
+
+
+
+---------------------------------- 
+SELECT * FROM CUSTOMER;
+---------------------------------- 
+ID  	NAME  
+1		srini
+---------------------------------- 
+
+
+---------------------------------- 
+SELECT * FROM ITEM;
+---------------------------------- 
+
+NAME  	PRICE  
+
+mobile	10000
+laptop	45000
+---------------------------------- 
+
+
+
+---------------------------------- 
+SELECT * FROM CUSTOMER_ITEMS_SET;
+---------------------------------- 
+CUSTOMTERS_SET_ID  	ITEMS_SET_NAME 
+ 
+    1				laptop
+    1				mobile
+---------------------------------- 
+
+
+
+
+
+
+        
+        
+
+
+customer.java
+--------------
+@ManyToMany(cascade = CascadeType.ALL)
+private Set<Item> itemsSet= new HashSet<>();
+
+
+
+
+item.java
+--------
+@ManyToMany(cascade = CascadeType.ALL, mappedBy = "itemsSet")
+private Set<Customer> customtersSet = new HashSet<>();
+    
+    
+    
+
+Case1: one customer have many items
+
+main.java
+--------
+Customer customer = new Customer("srini");
+
+Set<Item> items= new HashSet<>();
+
+items.add(new Item("mobile",10000));
+items.add(new Item("laptop",45000));
+
+customer.setItemsSet(items);
+customerRepository.save(customer);
+
+
+
+
+Case 2: many 
+
+
+
+
+
+
+
+
+
+
+Tables
+------
+
+SELECT * FROM CUSTOMER;
+
+ID  	NAME  
+1	  srini
+2	  teju
+
+
+SELECT * FROM ITEM;
+-------------------
+NAME  	PRICE 
+ 
+mobile	10000
+laptop	45000
+ipad	85000
+
+
+
+SELECT * FROM CUSTOMER_ITEMS_SET;
+--------------------------
+CUSTOMTERS_SET_ID  	ITEMS_SET_NAME  
+1					laptop
+1					mobile
+
+
+
+
+
+
+
+
+
+
+SELECT * FROM CUSTOMER_ITEMS_SET;
+CUSTOMTERS_SET_ID  	ITEMS_SET_NAME  
+
+
+
+
+
+
+here, its not working as expected
+
+	
+
+
+
+
+
+Item item2 = new Item("ipad", 85000);
+
+		Set<Customer> custSet = new HashSet<>();
+
+		custSet.add(new Customer("srini"));
+		custSet.add(new Customer("teju"));
+
+		item2.setCustomtersSet(custSet);
+		itemRepository.save(item2);
+
+
+
+
+
+
+
+
+
+
+
+adding this way
+@ManyToMany(cascade = CascadeType.ALL, mappedBy = "customtersSet")
+    private Set<Item> itemsSet= new HashSet<>();
+    
+    
+
+generated table
+----
+
+SELECT * FROM ITEM_CUSTOMTERS_SET;
+ITEMS_SET_NAME  	CUSTOMTERS_SET_ID  
+
+
+
+
+
+-->
+but still same issue
+
+
+
+
+
+
+
+
+
+
+
+this not fixed the issue
+-------->
+
+Item item2 = new Item("ipad", 85000);
+
+		Set<Customer> custSet = new HashSet<>();
+
+		custSet.add(new Customer("srini"));
+		custSet.add(new Customer("teju"));
+
+
+		itemRepository.save(item2);
+		customerRepository.saveAll(custSet);
+
+
+		//item2.setCustomtersSet(custSet);
+
+		item2.addAllCustomers(custSet);
+		
+		itemRepository.save(item2);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+still item part is not working
+-----
+
+
+ID  	NAME  
+1	srini
+2	teju
+
+
+
+SELECT * FROM ITEM;
+NAME  	PRICE  
+iphone	65000
+ipad	85000
+
+
+
+
+
+
+SELECT * FROM CUSTOMER_ITEM;
+
+CUSTOMER_ID  	ITEM_NAME  
+1				ipad
+1				iphone
+2				ipad
+
+
+
+
+
+main - code
+--------------
+Item item1 = new Item("ipad", 85000);
+Item item2 = new Item("iphone", 65000);
+
+Customer c1 = new Customer("srini");
+Customer c2 = new Customer("teju");
+
+
+item1.getCustomersSet().add(c1);
+item1.getCustomersSet().add(c2);
+
+c1.getItemsSet().add(item2);
+c1.getItemsSet().add(item1);
+c2.getItemsSet().add(item1);
+
+
+customerRepository.save(c1);
+customerRepository.save(c2);
+
+itemRepository.save(item1);
+itemRepository.save(item2);
+		
+		
+
+
+
+
+Caused by: org.springframework.dao.DataIntegrityViolationException: could not execute statement; SQL [n/a]; 
+constraint ["PUBLIC.PRIMARY_KEY_2 ON PUBLIC.ITEM(NAME) VALUES 1"; SQL statement:
+insert into item (price, name) values (?, ?) [23505-200]]; 
+nested exception is org.hibernate.exception.ConstraintViolationException: could not execute statement
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Test 1
+-----
+
+
+Customer customer = new Customer("srini");
+		Customer customer1 = new Customer("teju");
+
+		Set<Item> items= new HashSet<>();
+		items.add(new Item("mobile",10000));
+		items.add(new Item("laptop",45000));
+
+		customer.setItemsSet(items);
+
+        customerRepository.save(customer);
+
+        customer1.getItemsSet().add(new Item("camera",25000));
+		customerRepository.save(customer1);
+		
+		
+		
+	
+SELECT * FROM CUSTOMER;
+ID  	NAME  
+1	srini
+2	teju
+
+
+SELECT * FROM ITEM;
+NAME  	PRICE  
+laptop	45000
+mobile	10000
+camera	25000
+
+	
+		
+
+SELECT * FROM CUSTOMER_ITEM;
+CUSTOMER_ID  	ITEM_NAME  
+1				laptop
+1				mobile
+2			camera
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+No identifier specified for entity: com.srinivart.entity.Item
+
+
+
+Solution
+————
+
+@Entity
+public class Item {
+     
+    @Id
+    private String name;
+
+
+
+
+
+
+
+
+
+
+dummy
+----
+
+//
+//		customer.setItem(Arrays.asList(item1,item2));
+//		customerRepository.save(customer);
+
+//		customer.getItem().add(item1);
+//		customer.getItem().add(item2);
+
+
+//
+
+//
+//
+//		customerRepository.save(customer);
+
+
+
+
+
+
+
+
+
+
+@Entity
+@Table(name = "SUPER_HERO")
+public class SuperHero {
+
+@ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
+    @JoinTable(
+            name = "SuperHero_Movies",
+            joinColumns = {@JoinColumn(name = "superhero_id")},
+            inverseJoinColumns = {@JoinColumn(name = "movie_id")}
+    )
+    private Set<Movie> movies = new HashSet<>();
+    
+    
+    
+    
+    
+
+
+In JPA we use the @ManyToMany annotation to model many-to-many relationships. 
+This type of relationship can be unidirectional or bidirectional:
+
+
+
+In a unidirectional relationship only one entity in the relationship points the other.
+In a bidirectional relationship both entities point to each other.
+
+
+
+
+the fetching strategy, which can be lazy or eager
+
+we've set the fetch to EAGER, so that when we retrieve a SuperHero from the database, 
+we'll also automatically retrieve all of its corresponding Movies.
+
+
+
+Cascade operations define how superheroes and their corresponding movies are persisted to and from the database.
+
+
+
